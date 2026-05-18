@@ -2,6 +2,60 @@
 #import "RecordDetailViewController.h"
 #import "APIClient.h"
 #import "VinylRecord.h"
+#import <QuartzCore/QuartzCore.h>
+
+#pragma mark - Custom cell with sleeve_front thumbnail (right side, just left of chevron)
+
+@interface _RecordCell : UITableViewCell
+@property (strong, nonatomic) UIImageView *thumb;
+@end
+
+@implementation _RecordCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    if ((self = [super initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdentifier])) {
+        _thumb = [[UIImageView alloc] initWithFrame:CGRectZero];
+        _thumb.contentMode = UIViewContentModeScaleAspectFill;
+        _thumb.clipsToBounds = YES;
+        _thumb.layer.borderColor = [[UIColor colorWithWhite:0.6 alpha:1.0] CGColor];
+        _thumb.layer.borderWidth = 0.5;
+        _thumb.backgroundColor = [UIColor colorWithWhite:0.93 alpha:1.0];
+        [self.contentView addSubview:_thumb];
+    }
+    return self;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    CGFloat thumbSize = 38;
+    CGFloat rightPad  = 6;
+    CGFloat w = self.contentView.bounds.size.width;
+    CGFloat h = self.contentView.bounds.size.height;
+    self.thumb.frame = CGRectMake(w - thumbSize - rightPad, (h - thumbSize) / 2, thumbSize, thumbSize);
+
+    // Shrink text labels so they don't run under the thumbnail
+    CGFloat textRightLimit = w - thumbSize - rightPad - 8;
+    CGRect tFrame = self.textLabel.frame;
+    if (CGRectGetMaxX(tFrame) > textRightLimit) {
+        tFrame.size.width = MAX(0, textRightLimit - tFrame.origin.x);
+        self.textLabel.frame = tFrame;
+    }
+    CGRect dFrame = self.detailTextLabel.frame;
+    if (CGRectGetMaxX(dFrame) > textRightLimit) {
+        dFrame.size.width = MAX(0, textRightLimit - dFrame.origin.x);
+        self.detailTextLabel.frame = dFrame;
+    }
+}
+
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    self.thumb.image = nil;
+    self.thumb.tag = 0;
+}
+
+@end
+
+#pragma mark -
 
 @interface RecordListViewController ()
 @property (strong, nonatomic) NSArray *allRecords;       // raw fetched records
@@ -92,8 +146,8 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *reuse = @"r";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuse];
-    if (!cell) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuse];
+    _RecordCell *cell = (_RecordCell *)[tableView dequeueReusableCellWithIdentifier:reuse];
+    if (!cell) cell = [[_RecordCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuse];
 
     VinylRecord *r = self.displayedRecords[indexPath.row];
     cell.textLabel.text = r.title.length ? r.title : @"(untitled)";
@@ -104,6 +158,29 @@
     if (trailing.count) [sub appendFormat:@" · %@", [trailing componentsJoinedByString:@" · "]];
     cell.detailTextLabel.text = sub;
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+
+    // Find sleeve_front and lazy-load thumbnail
+    Photo *front = nil;
+    for (Photo *p in r.photos) {
+        if ([p.photoType isEqualToString:@"sleeve_front"]) { front = p; break; }
+    }
+
+    if (!front) {
+        cell.thumb.image = nil;
+        cell.thumb.tag = 0;
+        return cell;
+    }
+
+    NSInteger token = (NSInteger)[r.recordId hash];
+    cell.thumb.tag = token;
+    NSURL *url = [[APIClient sharedClient] photoURLForRecord:r.recordId photo:front size:240];
+    __weak _RecordCell *weakCell = cell;
+    [[APIClient sharedClient] fetchPhotoData:url completion:^(NSData *data, NSError *err) {
+        _RecordCell *strong = weakCell;
+        if (!strong || strong.thumb.tag != token || !data) return;
+        strong.thumb.image = [UIImage imageWithData:data];
+    }];
+
     return cell;
 }
 
