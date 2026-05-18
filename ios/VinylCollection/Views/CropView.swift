@@ -175,7 +175,7 @@ struct CropView: View {
                         Button { onCancel() } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .foregroundColor(.white)
                                 .frame(width: 44, height: 44)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Circle())
@@ -194,7 +194,7 @@ struct CropView: View {
                         } label: {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .foregroundColor(.white)
                                 .frame(width: 44, height: 44)
                                 .background(Color.orange)
                                 .clipShape(Circle())

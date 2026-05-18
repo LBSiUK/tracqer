@@ -3,18 +3,18 @@ import SwiftUI
 @main
 struct TracqerApp: App {
 
-    @State private var appState = AppState()
+    @StateObject private var appState = AppState()
 
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environment(appState)
+                .environmentObject(appState)
         }
     }
 }
 
 struct RootView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         if appState.api != nil {

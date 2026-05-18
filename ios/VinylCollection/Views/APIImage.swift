@@ -22,7 +22,7 @@ struct APIImage: View {
             } else {
                 Image(systemName: "photo")
                     .font(.largeTitle)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(.systemGray5))
             }

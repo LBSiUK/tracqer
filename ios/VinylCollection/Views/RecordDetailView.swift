@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecordDetailView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) var dismiss
 
     let record: VinylRecord
@@ -27,12 +27,12 @@ struct RecordDetailView: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(current.artist)
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .font(.subheadline).foregroundColor(.secondary)
                     Text(current.title)
                         .font(.title.bold())
                     if let year = current.year {
                         Text(String(year))
-                            .font(.subheadline).foregroundStyle(.secondary)
+                            .font(.subheadline).foregroundColor(.secondary)
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 6) {
@@ -50,7 +50,7 @@ struct RecordDetailView: View {
                 metadataSection
 
                 if let err = error {
-                    Text(err).foregroundStyle(.red).padding(.horizontal)
+                    Text(err).foregroundColor(.red).padding(.horizontal)
                 }
             }
             .padding(.bottom, 32)
@@ -58,7 +58,7 @@ struct RecordDetailView: View {
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button("Edit") { showingEdit = true }
                     Button("Delete", role: .destructive) { showingDelete = true }
@@ -101,7 +101,7 @@ struct RecordDetailView: View {
             if let notes = current.notes, !notes.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Notes")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(.caption).foregroundColor(.secondary)
                     Text(notes)
                 }
                 .padding(.horizontal)
@@ -188,7 +188,7 @@ struct PhotoSectionView: View {
     private func sectionLabel(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.caption.bold())
-            .foregroundStyle(.secondary)
+            .foregroundColor(.secondary)
             .padding(.horizontal)
     }
 }
@@ -270,7 +270,7 @@ struct FullPhotoView: View {
             Button { dismiss() } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title)
-                    .foregroundStyle(.white)
+                    .foregroundColor(.white)
                     .shadow(radius: 4)
                     .padding()
             }
@@ -292,7 +292,7 @@ struct MetaRow: View {
         if let v = value, !v.isEmpty {
             HStack {
                 Text(label)
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(.subheadline).foregroundColor(.secondary)
                     .frame(width: 140, alignment: .leading)
                 Text(v).font(.subheadline)
                 Spacer()
@@ -315,7 +315,7 @@ struct Chip: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(color.opacity(0.15))
-            .foregroundStyle(color)
+            .foregroundColor(color)
             .clipShape(Capsule())
     }
 }

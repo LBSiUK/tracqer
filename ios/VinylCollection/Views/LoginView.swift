@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LoginView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
 
     @State private var serverURL = ""
     @State private var password  = ""
@@ -9,26 +9,26 @@ struct LoginView: View {
     @State private var errorMsg: String? = nil
 
     var body: some View {
-        NavigationStack {
+        CompatNavigation {
             VStack(spacing: 0) {
                 Spacer()
 
                 VStack(spacing: 8) {
                     Image(systemName: "record.circle")
                         .font(.system(size: 72))
-                        .foregroundStyle(.orange)
+                        .foregroundColor(.orange)
                     Text("Tracqer")
                         .font(.largeTitle.bold())
                     Text("Enter your server details to get started")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.bottom, 40)
 
                 VStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Server URL").font(.caption).foregroundStyle(.secondary)
+                        Text("Server URL").font(.caption).foregroundColor(.secondary)
                         TextField("https://...", text: $serverURL)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.URL)
@@ -37,7 +37,7 @@ struct LoginView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Password").font(.caption).foregroundStyle(.secondary)
+                        Text("Password").font(.caption).foregroundColor(.secondary)
                         SecureField("Password", text: $password)
                             .textFieldStyle(.roundedBorder)
                     }
@@ -45,7 +45,7 @@ struct LoginView: View {
                     if let err = errorMsg {
                         Text(err)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundColor(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 

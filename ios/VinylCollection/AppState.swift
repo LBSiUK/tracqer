@@ -1,19 +1,20 @@
 import SwiftUI
-import Observation
+import Combine
 
 private let kServerURL = "vinyl_server_url"
 private let kKeyData   = "vinyl_key_data"
 private let kToken     = "vinyl_token"
 
+// Note: uses ObservableObject (iOS 13+) rather than the @Observable macro
+// (iOS 17+) so the same code compiles for iOS 15+ deployment.
 @MainActor
-@Observable
-final class AppState {
+final class AppState: ObservableObject {
 
-    var api: APIClient? = nil
-    var records: [VinylRecord] = []
-    var searchResults: [VinylRecord] = []
-    var isLoading = false
-    var errorMessage: String? = nil
+    @Published var api: APIClient? = nil
+    @Published var records: [VinylRecord] = []
+    @Published var searchResults: [VinylRecord] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String? = nil
 
     // Restore session on launch
     init() {

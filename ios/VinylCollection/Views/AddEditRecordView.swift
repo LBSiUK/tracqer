@@ -3,7 +3,7 @@ import PhotosUI
 import UIKit
 
 struct AddEditRecordView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
     @Environment(\.dismiss) var dismiss
 
     let record: VinylRecord?
@@ -39,7 +39,7 @@ struct AddEditRecordView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        CompatNavigation {
             Form {
                 Section("Basic Info") {
                     LabeledTextField("Artist", text: $artist, required: true,
@@ -75,34 +75,42 @@ struct AddEditRecordView: View {
                         .textInputAutocapitalization(.sentences)
                 }
 
-                Section("Sleeve Photos") {
-                    let types = outerSleeveOnly
-                        ? SleevePhotoType.allCases.filter { !$0.isInnerOnly }
-                        : SleevePhotoType.allCases
-                    ForEach(types, id: \.self) { t in
-                        PhotoPickerRow(
-                            label: t.label,
-                            fieldName: t.rawValue,
-                            existingURL: existingURL(for: t.rawValue),
-                            api: appState.api!,
-                            photoDatas: $photoDatas
-                        )
+                if #available(iOS 16.0, *) {
+                    Section("Sleeve Photos") {
+                        let types = outerSleeveOnly
+                            ? SleevePhotoType.allCases.filter { !$0.isInnerOnly }
+                            : SleevePhotoType.allCases
+                        ForEach(types, id: \.self) { t in
+                            PhotoPickerRow(
+                                label: t.label,
+                                fieldName: t.rawValue,
+                                existingURL: existingURL(for: t.rawValue),
+                                api: appState.api!,
+                                photoDatas: $photoDatas
+                            )
+                        }
                     }
-                }
 
-                ForEach(1...discCount, id: \.self) { disc in
-                    Section(discCount > 1 ? "Disc \(disc) Photos" : "Disc Photos") {
-                        PhotoPickerRow(label: "Side A", fieldName: "disc_front_\(disc)",
-                                       existingURL: existingURL(for: "disc_front", discNumber: disc),
-                                       api: appState.api!, photoDatas: $photoDatas)
-                        PhotoPickerRow(label: "Side B", fieldName: "disc_back_\(disc)",
-                                       existingURL: existingURL(for: "disc_back", discNumber: disc),
-                                       api: appState.api!, photoDatas: $photoDatas)
+                    ForEach(1...discCount, id: \.self) { disc in
+                        Section(discCount > 1 ? "Disc \(disc) Photos" : "Disc Photos") {
+                            PhotoPickerRow(label: "Side A", fieldName: "disc_front_\(disc)",
+                                           existingURL: existingURL(for: "disc_front", discNumber: disc),
+                                           api: appState.api!, photoDatas: $photoDatas)
+                            PhotoPickerRow(label: "Side B", fieldName: "disc_back_\(disc)",
+                                           existingURL: existingURL(for: "disc_back", discNumber: disc),
+                                           api: appState.api!, photoDatas: $photoDatas)
+                        }
+                    }
+                } else {
+                    Section {
+                        Text("Photo upload requires iOS 16 or later.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
                     }
                 }
 
                 if let err = errorMsg {
-                    Section { Text(err).foregroundStyle(.red) }
+                    Section { Text(err).foregroundColor(.red) }
                 }
             }
             .navigationTitle(isEdit ? "Edit Record" : "Add Record")
@@ -115,7 +123,7 @@ struct AddEditRecordView: View {
                     Button(isEdit ? "Save" : "Add") {
                         Task { await save() }
                     }
-                    .fontWeight(.semibold)
+                    .compatFontWeight(.semibold)
                     .tint(.orange)
                     .disabled(isSaving || title.isEmpty || artist.isEmpty)
                     .overlay { if isSaving { ProgressView().scaleEffect(0.8) } }
@@ -251,17 +259,17 @@ struct DurationField: View {
                     .multilineTextAlignment(.trailing)
                     .frame(width: 44)
                 Text(":")
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 TextField("00", text: $seconds)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.leading)
                     .frame(width: 32)
-                    .onChange(of: seconds) { _, val in
+                    .onChange(of: seconds) { val in
                         // Clamp to 0–59
                         if let n = Int(val), n > 59 { seconds = "59" }
                     }
             }
-            .foregroundStyle(.primary)
+            .foregroundColor(.primary)
         }
     }
 }
@@ -308,6 +316,7 @@ struct PickerRow: View {
     }
 }
 
+@available(iOS 16.0, *)
 struct PhotoPickerRow: View {
     let label: String
     let fieldName: String
@@ -365,13 +374,13 @@ struct PhotoPickerRow: View {
                 galleryCropItem = nil
             }
         }
-        .onChange(of: item) { _, newItem in
+        .onChange(of: item) { newItem in
             guard let newItem else { return }
             Task {
                 if let data = try? await newItem.loadTransferable(type: Data.self),
                    let img  = UIImage(data: data) {
                     // Wait for the picker sheet to fully dismiss before presenting crop
-                    try? await Task.sleep(for: .milliseconds(600))
+                    try? await Task.sleep(nanoseconds: 600 * 1_000_000)
                     galleryCropItem = CropItem(image: img, ratio: aspectRatio)
                 }
             }
@@ -393,7 +402,7 @@ struct PhotoPickerRow: View {
                 .onTapGesture { showingSourceDialog = true }
         } else {
             Button { showingSourceDialog = true } label: {
-                Image(systemName: "photo.badge.plus").foregroundStyle(.orange)
+                Image(systemName: "photo.badge.plus").foregroundColor(.orange)
             }
             .buttonStyle(.borderless)
         }
