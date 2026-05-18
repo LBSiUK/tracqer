@@ -76,6 +76,20 @@ static UIImage *SettingsIcon(void) {
     });
 }
 
+#pragma mark - Build date helper (mtime of the executable, formatted UTC)
+
+static NSString *BuildDateStringUTC(void) {
+    NSString *path = [[NSBundle mainBundle] executablePath];
+    NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:NULL];
+    NSDate *date = attrs[NSFileModificationDate];
+    if (!date) return @"";
+    NSDateFormatter *fmt = [[NSDateFormatter alloc] init];
+    fmt.locale     = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+    fmt.timeZone   = [NSTimeZone timeZoneWithAbbreviation:@"UTC"];
+    fmt.dateFormat = @"HH:mm, d MMM yyyy 'UTC'";
+    return [fmt stringFromDate:date];
+}
+
 #pragma mark - Placeholder for Search + Settings tabs
 
 @interface PlaceholderViewController : UIViewController
@@ -105,34 +119,35 @@ static UIImage *SettingsIcon(void) {
                                                                                  target:self
                                                                                  action:@selector(logoutTapped)];
 
-        // "Made with ❤️ in London and Brighton / by Leon Brahams / v1.0" footer
+        // Footer: "Tracqer vX.Y (HH:mm, D MMM YYYY UTC) / Made with ❤️ in London and Brighton / by Leon Brahams"
         CGFloat w = self.view.bounds.size.width;
         CGFloat bottom = self.view.bounds.size.height - 80;
-        UILabel *credit1 = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom, w - 40, 18)];
+
+        NSString *v = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"";
+        UILabel *buildLine = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom, w - 40, 14)];
+        buildLine.text = [NSString stringWithFormat:@"Tracqer v%@ (%@)", v, BuildDateStringUTC()];
+        buildLine.font = [UIFont systemFontOfSize:11];
+        buildLine.textAlignment = NSTextAlignmentCenter;
+        buildLine.textColor = [UIColor lightGrayColor];
+        buildLine.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+
+        UILabel *credit1 = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom + 20, w - 40, 18)];
         credit1.text = @"Made with ❤️ in London and Brighton";
         credit1.font = [UIFont systemFontOfSize:13];
         credit1.textAlignment = NSTextAlignmentCenter;
         credit1.textColor = [UIColor grayColor];
         credit1.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
 
-        UILabel *credit2 = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom + 20, w - 40, 18)];
+        UILabel *credit2 = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom + 40, w - 40, 18)];
         credit2.text = @"by Leon Brahams";
         credit2.font = [UIFont systemFontOfSize:13];
         credit2.textAlignment = NSTextAlignmentCenter;
         credit2.textColor = [UIColor grayColor];
         credit2.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
 
-        NSString *v = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"";
-        UILabel *version = [[UILabel alloc] initWithFrame:CGRectMake(20, bottom + 42, w - 40, 14)];
-        version.text = [NSString stringWithFormat:@"v%@", v];
-        version.font = [UIFont systemFontOfSize:11];
-        version.textAlignment = NSTextAlignmentCenter;
-        version.textColor = [UIColor lightGrayColor];
-        version.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
-
+        [self.view addSubview:buildLine];
         [self.view addSubview:credit1];
         [self.view addSubview:credit2];
-        [self.view addSubview:version];
     }
 }
 
