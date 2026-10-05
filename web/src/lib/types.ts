@@ -50,7 +50,6 @@ export interface RecordFilters {
   format?: Format;
   disc_condition?: Grade;
   sleeve_condition?: Grade;
-  wishlist?: boolean;
   page?: number;
   limit?: number;
   sort?: string;

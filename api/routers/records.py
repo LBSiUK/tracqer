@@ -53,7 +53,6 @@ async def list_records(
     format:           FormatEnum | None        = Query(default=None),
     disc_condition:   GradeEnum | None         = Query(default=None),
     sleeve_condition: GradeEnum | None         = Query(default=None),
-    wishlist:         bool | None              = Query(default=None),
     page:             int                      = Query(default=1, ge=1),
     limit:            int                      = Query(default=50, ge=1, le=MAX_LIMIT),
     sort:             str                      = Query(default="artist"),
@@ -95,8 +94,6 @@ async def list_records(
         stmt = stmt.where(Record.disc_condition == disc_condition)
     if sleeve_condition is not None:
         stmt = stmt.where(Record.sleeve_condition == sleeve_condition)
-    if wishlist is not None:
-        stmt = stmt.where(Record.wishlist == wishlist)
 
     total   = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows    = await db.scalars(stmt.offset((page - 1) * limit).limit(limit))
