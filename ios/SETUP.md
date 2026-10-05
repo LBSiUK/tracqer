@@ -1,5 +1,21 @@
 # iOS App — Xcode Setup
 
+## Quick route: XcodeGen
+
+If you have [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`),
+`project.yml` in this folder describes the whole project:
+
+```sh
+cd ios
+xcodegen generate
+open VinylCollection.xcodeproj
+```
+
+Set your own bundle identifier and team in the target's Signing settings before
+running on a device; the simulator works as generated. The generated
+`VinylCollection.xcodeproj` is ignored by git, so run `xcodegen generate` again
+after adding or removing files. The manual steps below do the same thing by hand.
+
 ## Create the Xcode project
 
 1. Open Xcode → **File › New › Project**
@@ -27,11 +43,13 @@ VinylCollection/
 ├── Crypto.swift
 ├── APIClient.swift
 ├── AppState.swift
+├── Compat.swift
 └── Views/
     ├── LoginView.swift
     ├── CollectionView.swift
     ├── RecordDetailView.swift
     ├── AddEditRecordView.swift
+    ├── CropView.swift
     └── APIImage.swift
 ```
 

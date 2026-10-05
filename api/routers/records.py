@@ -13,7 +13,7 @@ from ..crypto import decrypt, encrypt, get_key
 from ..database import get_db
 from ..dependencies import decrypt_body, require_auth
 from ..models import FormatEnum, GradeEnum, OwnerEnum, PhotoTypeEnum, Record, SpeedEnum
-from ..routers.photos import _photo_url, attach_photo
+from ..routers.photos import _delete_photo_files, _photo_url, attach_photo
 from ..schemas import PhotoResponse, RecordCreate, RecordResponse, RecordUpdate
 
 router = APIRouter(prefix="/records", tags=["records"])
@@ -53,7 +53,6 @@ async def list_records(
     format:           FormatEnum | None        = Query(default=None),
     disc_condition:   GradeEnum | None         = Query(default=None),
     sleeve_condition: GradeEnum | None         = Query(default=None),
-    wishlist:         bool | None              = Query(default=None),
     page:             int                      = Query(default=1, ge=1),
     limit:            int                      = Query(default=50, ge=1, le=MAX_LIMIT),
     sort:             str                      = Query(default="artist"),
@@ -95,8 +94,6 @@ async def list_records(
         stmt = stmt.where(Record.disc_condition == disc_condition)
     if sleeve_condition is not None:
         stmt = stmt.where(Record.sleeve_condition == sleeve_condition)
-    if wishlist is not None:
-        stmt = stmt.where(Record.wishlist == wishlist)
 
     total   = await db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
     rows    = await db.scalars(stmt.offset((page - 1) * limit).limit(limit))
@@ -275,5 +272,9 @@ async def delete_record(
     record = await db.get(Record, record_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Record not found")
+    photo_ids = [p.id for p in record.photos]
     await db.delete(record)
     await db.commit()
+    # The photo rows are deleted along with the record; remove their files from disk too
+    for photo_id in photo_ids:
+        _delete_photo_files(photo_id)

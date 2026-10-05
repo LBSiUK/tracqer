@@ -94,8 +94,6 @@ export class VinylAPI {
       params.set("disc_condition", filters.disc_condition);
     if (filters.sleeve_condition)
       params.set("sleeve_condition", filters.sleeve_condition);
-    if (filters.wishlist !== undefined)
-      params.set("wishlist", String(filters.wishlist));
     if (filters.page !== undefined) params.set("page", String(filters.page));
     if (filters.limit !== undefined) params.set("limit", String(filters.limit));
     if (filters.sort) params.set("sort", filters.sort);
