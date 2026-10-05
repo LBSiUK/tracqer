@@ -1,0 +1,39 @@
+# XcodeGen spec for the SwiftUI client. Optional: SETUP.md also describes the
+# manual route of creating the project in Xcode.
+#
+#   brew install xcodegen
+#   cd ios && xcodegen generate && open VinylCollection.xcodeproj
+#
+# The generated VinylCollection.xcodeproj is ignored by git; regenerate it
+# whenever files are added or removed. Set your own bundle identifier and
+# team before running on a device.
+name: VinylCollection
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.1"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  VinylCollection:
+    type: application
+    platform: iOS
+    sources:
+      - path: VinylCollection
+    settings:
+      base:
+        PRODUCT_NAME: VinylCollection
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.tracqer
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: VinylCollection/Info.plist
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Tracqer
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        CODE_SIGN_STYLE: Automatic
