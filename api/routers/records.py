@@ -13,7 +13,7 @@ from ..crypto import decrypt, encrypt, get_key
 from ..database import get_db
 from ..dependencies import decrypt_body, require_auth
 from ..models import FormatEnum, GradeEnum, OwnerEnum, PhotoTypeEnum, Record, SpeedEnum
-from ..routers.photos import _photo_url, attach_photo
+from ..routers.photos import _delete_photo_files, _photo_url, attach_photo
 from ..schemas import PhotoResponse, RecordCreate, RecordResponse, RecordUpdate
 
 router = APIRouter(prefix="/records", tags=["records"])
@@ -272,5 +272,9 @@ async def delete_record(
     record = await db.get(Record, record_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Record not found")
+    photo_ids = [p.id for p in record.photos]
     await db.delete(record)
     await db.commit()
+    # The photo rows are deleted along with the record; remove their files from disk too
+    for photo_id in photo_ids:
+        _delete_photo_files(photo_id)
