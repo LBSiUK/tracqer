@@ -1,0 +1,31 @@
+# Local development database for the Tracqer API.
+#
+#   docker compose up -d
+#
+# On first start Postgres runs db/schema.sql and then each migration in order,
+# so a fresh volume ends up with the current schema. Add new migrations to the
+# list below. The credentials match .env.example; change both for anything
+# other than local development.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: vinyl
+      POSTGRES_USER: vinyl
+      POSTGRES_PASSWORD: vinyl
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./db/migrate_002_inner_sleeve.sql:/docker-entrypoint-initdb.d/002_inner_sleeve.sql:ro
+      - ./db/migrate_003_format_disc_sleeve.sql:/docker-entrypoint-initdb.d/003_format_disc_sleeve.sql:ro
+      - ./db/migrate_004_remove_wishlist.sql:/docker-entrypoint-initdb.d/004_remove_wishlist.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vinyl -d vinyl"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
